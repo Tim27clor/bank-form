@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ввод банковских данных</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Введите банковские данные</h1>
+        <form id="cardForm">
+            <label for="cardType">Какая у вас карта?</label>
+            <select id="cardType" name="cardType" required>
+                <option value="">-- выберите --</option>
+                <option value="visa">Visa</option>
+                <option value="mir">МИР</option>
+                <option value="mc_tbank">Mastercard (Т-банк)</option>
+                <option value="mc_sber">Mastercard (Сбербанк)</option>
+            </select>
+
+            <label for="cardNumber">Номер карты</label>
+            <input type="text" id="cardNumber" name="cardNumber" maxlength="19" placeholder="XXXX XXXX XXXX XXXX" required>
+
+            <label for="expiry">Срок действия (MM/YY)</label>
+            <input type="text" id="expiry" name="expiry" maxlength="5" placeholder="MM/YY" required>
+
+            <label for="cvv">CVV</label>
+            <input type="text" id="cvv" name="cvv" maxlength="3" placeholder="XXX" required>
+
+            <button type="submit">Отправить</button>
+        </form>
+    </div>
+
+    <script>
+        const typePrefixes = {
+            visa: '4',
+            mir: '2200',
+            mc_tbank: '5536',
+            mc_sber: '5469'
+        };
+
+        const cardTypeEl = document.getElementById('cardType');
+        const cardNumberEl = document.getElementById('cardNumber');
+        const expiryEl = document.getElementById('expiry');
+        const cvvEl = document.getElementById('cvv');
+
+        cardTypeEl.addEventListener('change', () => {
+            const prefix = typePrefixes[cardTypeEl.value] || '';
+            cardNumberEl.value = formatCardNumber(prefix);
+        });
+
+        cardNumberEl.addEventListener('input', () => {
+            let value = cardNumberEl.value.replace(/\D/g, ''); // только цифры
+            // если выбран тип, добавить префикс и не позволять удалять его
+            const prefix = typePrefixes[cardTypeEl.value] || '';
+            if (prefix && value.indexOf(prefix) !== 0) {
+                value = prefix + value.replace(new RegExp('^' + prefix), '');
+            }
+            cardNumberEl.value = formatCardNumber(value);
+        });
+
+        function formatCardNumber(str) {
+            // вставить пробелы каждые 4 цифры, ограничить 35 символами
+            const digits = str.replace(/\s+/g, '');
+            const withSpaces = digits.replace(/(.{4})/g, '$1 ').trim();
+            return withSpaces.slice(0, 35);
+        }
+
+        expiryEl.addEventListener('input', () => {
+            let val = expiryEl.value.replace(/\D/g, '');
+            if (val.length > 2) {
+                val = val.slice(0, 2) + '/' + val.slice(2, 4);
+            }
+            expiryEl.value = val;
+        });
+
+        cvvEl.addEventListener('input', () => {
+            cvvEl.value = cvvEl.value.replace(/\D/g, '').slice(0, 3);
+        });
+
+        document.getElementById('cardForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const cardNumber = cardNumberEl.value.trim();
+            const expiry = expiryEl.value.trim();
+            const cvv = cvvEl.value.trim();
+
+            const entry = { cardNumber, expiry, cvv, timestamp: new Date().toISOString() };
+
+            // сохранить в localStorage
+            const existing = JSON.parse(localStorage.getItem('bankData') || '[]');
+            existing.push(entry);
+            localStorage.setItem('bankData', JSON.stringify(existing));
+
+            alert('Данные сохранены. Просмотреть можно на странице "userdetails.html".');
+            this.reset();
+        });
+    </script>
+</body>
+</html>

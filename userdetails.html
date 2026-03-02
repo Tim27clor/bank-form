@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Сохранённые данные</title>
+    <link rel="stylesheet" href="userdetails.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Сохранённые банковские данные</h1>
+        <div id="passwordSection">
+            <label for="passwordInput">Введите пароль:</label>
+            <input type="password" id="passwordInput" placeholder="Пароль">
+            <button id="checkPassword">Проверить</button>
+            <p id="error" class="error"></p>
+        </div>
+        <div id="dataSection" style="display: none;">
+            <table id="dataTable">
+                <thead>
+                    <tr>
+                        <th>Номер карты</th>
+                        <th>Срок</th>
+                        <th>CVV</th>
+                        <th>Время ввода</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+            <button id="clearData">Очистить данные</button>
+        </div>
+    </div>
+
+    <script>
+        const password = '27032011';
+        document.getElementById('checkPassword').addEventListener('click', () => {
+            const input = document.getElementById('passwordInput').value;
+            if (input === password) {
+                document.getElementById('passwordSection').style.display = 'none';
+                showData();
+            } else {
+                document.getElementById('error').textContent = 'Неверный пароль';
+            }
+        });
+
+        function showData() {
+            const stored = JSON.parse(localStorage.getItem('bankData') || '[]');
+            const tbody = document.querySelector('#dataTable tbody');
+            tbody.innerHTML = '';
+            stored.forEach(entry => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${entry.cardNumber}</td>
+                    <td>${entry.expiry}</td>
+                    <td>${entry.cvv}</td>
+                    <td>${new Date(entry.timestamp).toLocaleString()}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+            document.getElementById('dataSection').style.display = 'block';
+        }
+
+        document.getElementById('clearData').addEventListener('click', () => {
+            if (confirm('Удалить все сохранённые данные?')) {
+                localStorage.removeItem('bankData');
+                showData();
+            }
+        });
+    </script>
+</body>
+</html>
